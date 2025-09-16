@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ThemeProvider } from '@mui/material/styles';
 import { CssBaseline, Box } from '@mui/material';
 import { HashRouter as Router, Routes, Route } from 'react-router-dom';
+import './fix-backdrop.css';
 
 import redCrossTheme from './theme/redCrossTheme';
 import Header from './components/Layout/Header';

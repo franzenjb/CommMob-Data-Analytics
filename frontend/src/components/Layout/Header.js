@@ -76,13 +76,21 @@ const Header = ({ onMenuClick, user }) => {
             vertical: 'top',
             horizontal: 'right',
           }}
-          keepMounted
+          keepMounted={false}
           transformOrigin={{
             vertical: 'top',
             horizontal: 'right',
           }}
-          open={Boolean(anchorEl)}
+          open={false}
           onClose={handleMenuClose}
+          sx={{
+            '& .MuiModal-backdrop': {
+              display: 'none'
+            },
+            '& .MuiBackdrop-root': {
+              display: 'none'
+            }
+          }}
         >
           <MenuItem onClick={handleMenuClose}>
             <Settings sx={{ mr: 1 }} />
