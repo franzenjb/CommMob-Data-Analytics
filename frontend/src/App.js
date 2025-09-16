@@ -9,6 +9,7 @@ import Header from './components/Layout/Header';
 import Sidebar from './components/Layout/Sidebar';
 import Dashboard from './pages/Dashboard';
 import ExecutiveDashboard from './pages/ExecutiveDashboard';
+import ExecutiveMinimal from './pages/ExecutiveMinimal';
 import Maps from './pages/Maps';
 import Analytics from './pages/Analytics';
 import Volunteers from './pages/Volunteers';
@@ -28,25 +29,11 @@ function App() {
     <ThemeProvider theme={redCrossTheme}>
       <CssBaseline />
       <Router>
-        <Box sx={{ display: 'flex' }}>
-          <Header onMenuClick={handleMenuClick} />
-          <Sidebar open={sidebarOpen} />
-          
-          <Box
-            component="main"
-            sx={{
-              flexGrow: 1,
-              p: 3,
-              mt: 8, // Height of AppBar
-              ml: sidebarOpen ? '280px' : 0,
-              transition: 'margin-left 0.2s ease-in-out',
-              minHeight: 'calc(100vh - 64px)',
-              backgroundColor: 'background.default'
-            }}
-          >
+        <Box sx={{ display: 'block' }}>
+          <Box component="main" sx={{ p: 0, m: 0 }}>
             <Routes>
-              <Route path="/" element={<ExecutiveDashboard />} />
-              <Route path="/executive" element={<ExecutiveDashboard />} />
+              <Route path="/" element={<ExecutiveMinimal />} />
+              <Route path="/executive" element={<ExecutiveMinimal />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/maps" element={<Maps />} />
               <Route path="/analytics" element={<Analytics />} />
