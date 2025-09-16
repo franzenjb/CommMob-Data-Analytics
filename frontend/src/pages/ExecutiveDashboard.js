@@ -116,6 +116,39 @@ const ExecutiveDashboard = () => {
     }
   };
 
+  // Executive Action Handlers
+  const handleQuickAction = (action) => {
+    console.log(`Executive Action: ${action}`);
+    
+    switch (action) {
+      case 'recruitment':
+        alert('🚀 Launching Recruitment Campaign\n\n• Targeting high-need regions: Nevada, Utah\n• Mobile recruitment units deployed\n• Social media campaign activated\n• Partner organizations contacted\n\nEstimated timeline: 30 days\nExpected new volunteers: 150-200');
+        break;
+      case 'report':
+        alert('📊 Generating Executive Board Report\n\n• Compiling Q4 performance metrics\n• Including geographic analysis\n• Adding AI insights and recommendations\n• Formatting for board presentation\n\nReport will be emailed to board@redcross.org in 5 minutes');
+        break;
+      case 'meeting':
+        alert('📅 Scheduling Strategy Meeting\n\n• Checking executive calendars\n• Booking conference room\n• Preparing agenda with key metrics\n• Inviting regional directors\n\nMeeting scheduled for next Tuesday 2:00 PM');
+        break;
+      case 'allocation':
+        alert('💰 Reviewing Resource Allocation\n\n• Analyzing budget vs. performance\n• Identifying optimization opportunities\n• Calculating ROI by region\n• Preparing reallocation recommendations\n\nAnalysis will be ready in 24 hours');
+        break;
+      case 'map':
+        alert('🗺️ Opening Full Map Analysis\n\n• Loading volunteer density overlay\n• Displaying disaster risk zones\n• Calculating coverage gaps\n• Showing deployment recommendations\n\nLaunching advanced mapping interface...');
+        break;
+      default:
+        alert(`Executive Action: ${action}\n\nThis would connect to Red Cross systems for real implementation.`);
+    }
+  };
+
+  const handleQuickChip = (query) => {
+    setAiQuery(query);
+    // Auto-process the query
+    setTimeout(() => {
+      handleAIQuery();
+    }, 100);
+  };
+
   const KPICard = ({ title, value, change, icon, color = 'primary' }) => (
     <Card sx={{ height: '100%', border: `2px solid`, borderColor: `${color}.main` }}>
       <CardContent>
@@ -161,7 +194,12 @@ const ExecutiveDashboard = () => {
   }
 
   return (
-    <Box sx={{ flexGrow: 1, p: 3 }}>
+    <Box sx={{ 
+      flexGrow: 1, 
+      p: 3,
+      position: 'relative',
+      zIndex: 1
+    }}>
       {/* Header */}
       <Box mb={4}>
         <Typography variant="h3" component="h1" gutterBottom color="primary">
@@ -271,7 +309,13 @@ const ExecutiveDashboard = () => {
                   <Button 
                     variant="outlined" 
                     startIcon={<Analytics />}
-                    sx={{ mt: 2 }}
+                    sx={{ 
+                      mt: 2,
+                      position: 'relative',
+                      zIndex: 10,
+                      pointerEvents: 'auto'
+                    }}
+                    onClick={() => handleQuickAction('map')}
                   >
                     View Full Map Analysis
                   </Button>
@@ -301,7 +345,15 @@ const ExecutiveDashboard = () => {
                   onKeyPress={(e) => e.key === 'Enter' && handleAIQuery()}
                   InputProps={{
                     endAdornment: (
-                      <IconButton onClick={handleAIQuery} color="primary">
+                      <IconButton 
+                        onClick={handleAIQuery} 
+                        color="primary"
+                        sx={{ 
+                          position: 'relative',
+                          zIndex: 10,
+                          pointerEvents: 'auto'
+                        }}
+                      >
                         <Send />
                       </IconButton>
                     )
@@ -325,7 +377,7 @@ const ExecutiveDashboard = () => {
                       key={question}
                       label={question}
                       size="small"
-                      onClick={() => setAiQuery(question)}
+                      onClick={() => handleQuickChip(question)}
                       sx={{ cursor: 'pointer' }}
                     />
                   ))}
@@ -361,22 +413,62 @@ const ExecutiveDashboard = () => {
         </Typography>
         <Grid container spacing={2}>
           <Grid item>
-            <Button variant="contained" color="primary" size="large">
+            <Button 
+              variant="contained" 
+              color="primary" 
+              size="large"
+              onClick={() => handleQuickAction('recruitment')}
+              sx={{ 
+                position: 'relative',
+                zIndex: 10,
+                pointerEvents: 'auto'
+              }}
+            >
               Launch Recruitment Campaign
             </Button>
           </Grid>
           <Grid item>
-            <Button variant="outlined" color="secondary" size="large">
+            <Button 
+              variant="outlined" 
+              color="secondary" 
+              size="large"
+              onClick={() => handleQuickAction('report')}
+              sx={{ 
+                position: 'relative',
+                zIndex: 10,
+                pointerEvents: 'auto'
+              }}
+            >
               Generate Board Report
             </Button>
           </Grid>
           <Grid item>
-            <Button variant="outlined" color="info" size="large">
+            <Button 
+              variant="outlined" 
+              color="info" 
+              size="large"
+              onClick={() => handleQuickAction('meeting')}
+              sx={{ 
+                position: 'relative',
+                zIndex: 10,
+                pointerEvents: 'auto'
+              }}
+            >
               Schedule Strategy Meeting
             </Button>
           </Grid>
           <Grid item>
-            <Button variant="outlined" color="warning" size="large">
+            <Button 
+              variant="outlined" 
+              color="warning" 
+              size="large"
+              onClick={() => handleQuickAction('allocation')}
+              sx={{ 
+                position: 'relative',
+                zIndex: 10,
+                pointerEvents: 'auto'
+              }}
+            >
               Review Resource Allocation
             </Button>
           </Grid>

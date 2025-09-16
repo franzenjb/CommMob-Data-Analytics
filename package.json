@@ -1,0 +1,23 @@
+{
+  "name": "commmob-data-analytics",
+  "version": "1.0.0",
+  "description": "A comprehensive, multi-layered data analytics platform for American Red Cross volunteer management, disaster response, and organizational insights. This platform enables users to study volunteer and applicant data from every possible angle through interactive maps, advanced visualizations, and AI-powered analytics.",
+  "main": "ai-content-manager.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/franzenjb/CommMob-Data-Analytics.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/franzenjb/CommMob-Data-Analytics/issues"
+  },
+  "homepage": "https://github.com/franzenjb/CommMob-Data-Analytics#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.55.0"
+  }
+}
