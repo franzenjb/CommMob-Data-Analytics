@@ -11,7 +11,9 @@ import {
   Button,
   TextField,
   IconButton,
-  Divider
+  Divider,
+  Tabs,
+  Tab
 } from '@mui/material';
 import {
   Warning,
@@ -24,10 +26,16 @@ import {
   QuestionAnswer,
   Send,
   Map as MapIcon,
-  Analytics
+  Analytics,
+  Warning as Emergency,
+  Psychology as PredictiveText,
+  TuneRounded as Optimize
 } from '@mui/icons-material';
 import dataService from '../services/dataService';
 import ExecutiveAIAgent from '../services/ExecutiveAIAgent';
+import CrisisCommandCenter from '../components/Executive/CrisisCommandCenter';
+import PredictiveAlerts from '../components/Executive/PredictiveAlerts';
+import ResourceOptimizer from '../components/Executive/ResourceOptimizer';
 
 const ExecutiveDashboard = () => {
   const [metrics, setMetrics] = useState({});
@@ -35,6 +43,7 @@ const ExecutiveDashboard = () => {
   const [aiQuery, setAiQuery] = useState('');
   const [aiResponse, setAiResponse] = useState('');
   const [loading, setLoading] = useState(true);
+  const [currentTab, setCurrentTab] = useState(0);
 
   useEffect(() => {
     loadExecutiveData();
@@ -193,22 +202,30 @@ const ExecutiveDashboard = () => {
     );
   }
 
-  return (
-    <Box sx={{ 
-      flexGrow: 1, 
-      p: 3,
-      position: 'relative',
-      zIndex: 1
-    }}>
-      {/* Header */}
-      <Box mb={4}>
-        <Typography variant="h3" component="h1" gutterBottom color="primary">
-          🏛️ Red Cross Executive Command Center
-        </Typography>
-        <Typography variant="h6" color="textSecondary">
-          Strategic insights and decision support for American Red Cross leadership
-        </Typography>
-      </Box>
+  const handleTabChange = (event, newValue) => {
+    setCurrentTab(newValue);
+  };
+
+  const renderTabContent = () => {
+    switch (currentTab) {
+      case 0:
+        return <CrisisCommandCenter />;
+      case 1:
+        return <PredictiveAlerts />;
+      case 2:
+        return <ResourceOptimizer />;
+      case 3:
+        return renderOriginalDashboard();
+      default:
+        return <CrisisCommandCenter />;
+    }
+  };
+
+  const renderOriginalDashboard = () => (
+    <Box>
+      <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold' }}>
+        📊 EXECUTIVE METRICS & AI ASSISTANT
+      </Typography>
 
       {/* Critical Alerts */}
       {alerts.length > 0 && (
@@ -473,6 +490,80 @@ const ExecutiveDashboard = () => {
             </Button>
           </Grid>
         </Grid>
+      </Box>
+    </Box>
+  );
+
+  return (
+    <Box sx={{ 
+      flexGrow: 1, 
+      p: 3,
+      position: 'relative',
+      zIndex: 1
+    }}>
+      {/* Header */}
+      <Box mb={3}>
+        <Typography variant="h3" component="h1" gutterBottom color="primary" sx={{ fontWeight: 'bold' }}>
+          🏛️ RED CROSS EXECUTIVE COMMAND CENTER
+        </Typography>
+        <Typography variant="h6" color="textSecondary">
+          Ultra-powerful decision support tools for Red Cross leadership
+        </Typography>
+      </Box>
+
+      {/* Executive Tool Tabs */}
+      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
+        <Tabs 
+          value={currentTab} 
+          onChange={handleTabChange} 
+          aria-label="executive tools"
+          variant="fullWidth"
+          sx={{ 
+            '& .MuiTab-root': { 
+              fontWeight: 'bold',
+              fontSize: '1rem',
+              minHeight: 64
+            }
+          }}
+        >
+          <Tab 
+            icon={<Emergency />} 
+            label="CRISIS COMMAND" 
+            sx={{ 
+              color: 'error.main',
+              '&.Mui-selected': { color: 'error.main' }
+            }}
+          />
+          <Tab 
+            icon={<PredictiveText />} 
+            label="PREDICTIVE ALERTS" 
+            sx={{ 
+              color: 'warning.main',
+              '&.Mui-selected': { color: 'warning.main' }
+            }}
+          />
+          <Tab 
+            icon={<Optimize />} 
+            label="RESOURCE OPTIMIZER" 
+            sx={{ 
+              color: 'success.main',
+              '&.Mui-selected': { color: 'success.main' }
+            }}
+          />
+          <Tab 
+            icon={<Analytics />} 
+            label="METRICS & AI" 
+            sx={{ 
+              color: 'info.main',
+              '&.Mui-selected': { color: 'info.main' }
+            }}
+          />
+        </Tabs>
+      </Box>
+
+      {/* Tab Content */}
+      <Box>
+        {renderTabContent()}
       </Box>
     </Box>
   );
