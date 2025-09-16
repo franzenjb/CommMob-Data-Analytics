@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Grid,
   Typography,
   Box,
-  Paper
+  Paper,
+  CircularProgress,
+  Alert
 } from '@mui/material';
 import {
   People,
@@ -13,110 +15,164 @@ import {
 } from '@mui/icons-material';
 
 import MetricCard from '../components/Dashboard/MetricCard';
+import InteractiveMap from '../components/Map/InteractiveMap';
+import DataChart from '../components/Charts/DataChart';
+import AIInsightsPanel from '../components/AI/AIInsightsPanel';
+import ThreeDVisualization from '../components/Visualizations/ThreeDVisualization';
+import dataService from '../services/dataService';
 
 const Dashboard = () => {
-  const metrics = [
-    {
-      title: 'Total Volunteers',
-      value: '49,247',
-      change: '+12.5%',
-      changeType: 'up',
-      subtitle: 'Active volunteers',
-      icon: <People sx={{ fontSize: 32 }} />,
-      color: 'primary'
-    },
-    {
-      title: 'New Applicants',
-      value: '76,384',
-      change: '+8.2%',
-      changeType: 'up',
-      subtitle: 'This year',
-      icon: <Assignment sx={{ fontSize: 32 }} />,
-      color: 'info'
-    },
-    {
-      title: 'Geographic Coverage',
-      value: '47',
-      change: '+3',
-      changeType: 'up',
-      subtitle: 'States covered',
-      icon: <Map sx={{ fontSize: 32 }} />,
-      color: 'success'
-    },
-    {
-      title: 'Conversion Rate',
-      value: '64.5%',
-      change: '+2.1%',
-      changeType: 'up',
-      subtitle: 'Application to volunteer',
-      icon: <TrendingUp sx={{ fontSize: 32 }} />,
-      color: 'warning'
+  const [metrics, setMetrics] = useState([]);
+  const [mapData, setMapData] = useState([]);
+  const [chartData, setChartData] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    loadDashboardData();
+  }, []);
+
+  const loadDashboardData = async () => {
+    try {
+      setLoading(true);
+      const [dashboardMetrics, geographicData, analyticsData] = await Promise.all([
+        dataService.getDashboardMetrics(),
+        dataService.getGeographicData(),
+        dataService.getAnalyticsData()
+      ]);
+
+      // Transform metrics data
+      const metricsData = [
+        {
+          title: 'Total Volunteers',
+          value: dashboardMetrics.totalVolunteers.toLocaleString(),
+          change: '+12.5%',
+          changeType: 'up',
+          subtitle: 'Active volunteers',
+          icon: <People sx={{ fontSize: 32 }} />,
+          color: 'primary'
+        },
+        {
+          title: 'New Applicants',
+          value: dashboardMetrics.totalApplicants.toLocaleString(),
+          change: '+8.2%',
+          changeType: 'up',
+          subtitle: 'This year',
+          icon: <Assignment sx={{ fontSize: 32 }} />,
+          color: 'info'
+        },
+        {
+          title: 'Geographic Coverage',
+          value: dashboardMetrics.geographicCoverage.toString(),
+          change: '+3',
+          changeType: 'up',
+          subtitle: 'States covered',
+          icon: <Map sx={{ fontSize: 32 }} />,
+          color: 'success'
+        },
+        {
+          title: 'Conversion Rate',
+          value: `${dashboardMetrics.conversionRate}%`,
+          change: '+2.1%',
+          changeType: 'up',
+          subtitle: 'Application to volunteer',
+          icon: <TrendingUp sx={{ fontSize: 32 }} />,
+          color: 'warning'
+        }
+      ];
+
+      setMetrics(metricsData);
+      setMapData(geographicData);
+      setChartData(analyticsData.statusDistribution);
+    } catch (err) {
+      setError('Failed to load dashboard data');
+      console.error('Dashboard data error:', err);
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
+
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
+        <CircularProgress size={60} />
+        <Typography variant="h6" sx={{ ml: 2 }}>
+          Loading advanced analytics...
+        </Typography>
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Alert severity="error" sx={{ mb: 3 }}>
+        {error}
+      </Alert>
+    );
+  }
 
   return (
     <Box>
       <Typography variant="h4" sx={{ mb: 3, fontWeight: 600 }}>
-        Dashboard Overview
+        Advanced Analytics Dashboard
       </Typography>
       
       <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
-        Comprehensive analytics for American Red Cross volunteer management and organizational insights.
+        Comprehensive analytics powered by Cloudflare AI, 3D visualizations, and real-time data processing.
       </Typography>
 
-      <Grid container spacing={3}>
+      {/* AI Insights Panel */}
+      <AIInsightsPanel 
+        metrics={metrics.reduce((acc, metric) => {
+          acc[metric.title.toLowerCase().replace(/\s+/g, '_')] = metric.value;
+          return acc;
+        }, {})}
+        onInsightsGenerated={(insights) => console.log('AI Insights:', insights)}
+      />
+
+      {/* Metrics Cards */}
+      <Grid container spacing={3} sx={{ mb: 3 }}>
         {metrics.map((metric, index) => (
           <Grid item xs={12} sm={6} md={3} key={index}>
             <MetricCard {...metric} />
           </Grid>
         ))}
-        
+      </Grid>
+
+      {/* Main Visualizations */}
+      <Grid container spacing={3}>
         <Grid item xs={12} md={8}>
-          <Paper sx={{ p: 3, height: 400 }}>
-            <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
-              Volunteer Distribution Map
-            </Typography>
-            <Box 
-              sx={{ 
-                height: 300, 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center',
-                backgroundColor: 'grey.50',
-                borderRadius: 1,
-                border: '2px dashed',
-                borderColor: 'grey.300'
-              }}
-            >
-              <Typography color="text.secondary">
-                Interactive map will be rendered here
-              </Typography>
-            </Box>
-          </Paper>
+          <InteractiveMap 
+            data={mapData} 
+            mapType="volunteers" 
+            height={400}
+          />
         </Grid>
         
         <Grid item xs={12} md={4}>
-          <Paper sx={{ p: 3, height: 400 }}>
-            <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
-              Application Pipeline
-            </Typography>
-            <Box 
-              sx={{ 
-                height: 300, 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center',
-                backgroundColor: 'grey.50',
-                borderRadius: 1,
-                border: '2px dashed',
-                borderColor: 'grey.300'
-              }}
-            >
-              <Typography color="text.secondary">
-                Pipeline chart will be rendered here
-              </Typography>
-            </Box>
-          </Paper>
+          <DataChart 
+            data={chartData}
+            type="pie"
+            title="Volunteer Status Distribution"
+            height={300}
+          />
+        </Grid>
+
+        <Grid item xs={12} md={6}>
+          <ThreeDVisualization 
+            data={mapData}
+            visualizationType="network"
+            title="3D Volunteer Network"
+          />
+        </Grid>
+
+        <Grid item xs={12} md={6}>
+          <DataChart 
+            data={chartData}
+            type="bar"
+            title="Geographic Distribution"
+            height={400}
+          />
         </Grid>
       </Grid>
     </Box>
