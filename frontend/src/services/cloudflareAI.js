@@ -4,9 +4,10 @@
 class CloudflareAIService {
   constructor() {
     this.apiUrl = process.env.REACT_APP_CLOUDFLARE_AI_URL || 'https://api.cloudflare.com/client/v4/accounts';
-    this.accountId = process.env.REACT_APP_CLOUDFLARE_ACCOUNT_ID;
-    this.apiToken = process.env.REACT_APP_CLOUDFLARE_API_TOKEN;
+    this.accountId = process.env.REACT_APP_CLOUDFLARE_ACCOUNT_ID || 'demo-account';
+    this.apiToken = process.env.REACT_APP_CLOUDFLARE_API_TOKEN || 'demo-token';
     this.model = '@cf/meta/llama-2-7b-chat-int8'; // Default model
+    this.isConfigured = !!(process.env.REACT_APP_CLOUDFLARE_ACCOUNT_ID && process.env.REACT_APP_CLOUDFLARE_API_TOKEN);
   }
 
   // Set up headers for Cloudflare AI API
@@ -299,6 +300,11 @@ class CloudflareAIService {
 
   // Generate AI-powered insights for dashboard
   async generateDashboardInsights(metrics) {
+    // If Cloudflare AI is not configured, return demo insights
+    if (!this.isConfigured) {
+      return this.getDemoDashboardInsights(metrics);
+    }
+
     try {
       const prompt = `
       Based on these American Red Cross volunteer metrics:
@@ -337,7 +343,7 @@ class CloudflareAIService {
       return this.parseDashboardInsights(result.result.response);
     } catch (error) {
       console.error('Cloudflare AI dashboard insights error:', error);
-      return this.getFallbackDashboardInsights();
+      return this.getDemoDashboardInsights(metrics);
     }
   }
 
@@ -349,6 +355,28 @@ class CloudflareAIService {
       recommendations: insights.slice(3, 5),
       confidence: 85,
       timestamp: new Date().toISOString()
+    };
+  }
+
+  // Demo dashboard insights (when AI is not configured)
+  getDemoDashboardInsights(metrics) {
+    const insights = [
+      `With ${metrics.totalVolunteers || '49,247'} active volunteers, the American Red Cross maintains strong volunteer engagement`,
+      `A ${metrics.conversionRate || '64.5'}% conversion rate indicates effective application processing`,
+      `Geographic coverage across ${metrics.geographicCoverage || '47'} states shows comprehensive reach`
+    ];
+
+    const recommendations = [
+      'Focus on improving conversion rates in regions with lower performance',
+      'Implement predictive analytics to identify high-potential applicants early'
+    ];
+
+    return {
+      insights,
+      recommendations,
+      confidence: 85,
+      timestamp: new Date().toISOString(),
+      isDemo: true
     };
   }
 

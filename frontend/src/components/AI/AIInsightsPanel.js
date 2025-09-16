@@ -58,7 +58,19 @@ const AIInsightsPanel = ({ metrics, onInsightsGenerated }) => {
     try {
       setLoading(true);
       const aiInsights = await cloudflareAI.generateDashboardInsights(metrics);
-      setInsights(aiInsights.insights || []);
+      
+      // Create insight object for display
+      const insightObject = {
+        id: Date.now(),
+        query: 'Dashboard Analysis',
+        insights: aiInsights.insights || [],
+        recommendations: aiInsights.recommendations || [],
+        confidence: aiInsights.confidence || 85,
+        timestamp: new Date().toISOString(),
+        isDemo: aiInsights.isDemo || false
+      };
+      
+      setInsights([insightObject]);
       onInsightsGenerated?.(aiInsights);
     } catch (error) {
       console.error('Error generating AI insights:', error);
@@ -114,6 +126,15 @@ const AIInsightsPanel = ({ metrics, onInsightsGenerated }) => {
           <Typography variant="h6" sx={{ fontWeight: 600, flexGrow: 1 }}>
             AI-Powered Insights
           </Typography>
+          {insights.length > 0 && insights[0]?.isDemo && (
+            <Chip 
+              label="Demo Mode" 
+              size="small" 
+              color="warning" 
+              variant="outlined"
+              sx={{ mr: 1 }}
+            />
+          )}
           <IconButton onClick={() => setExpanded(!expanded)}>
             {expanded ? <ExpandLess /> : <ExpandMore />}
           </IconButton>
