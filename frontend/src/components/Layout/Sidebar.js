@@ -12,11 +12,14 @@ import {
 } from '@mui/material';
 import {
   Dashboard,
+  BusinessCenter,
   Map,
   BarChart,
   People,
   Assignment,
   Analytics,
+  AttachMoney,
+  LocalHospital,
   Settings,
   Help
 } from '@mui/icons-material';
@@ -24,11 +27,14 @@ import {
 const drawerWidth = 280;
 
 const menuItems = [
-  { text: 'Dashboard', icon: <Dashboard />, path: '/' },
+  { text: 'Executive Command', icon: <BusinessCenter />, path: '/', featured: true },
+  { text: 'Operations Dashboard', icon: <Dashboard />, path: '/dashboard' },
   { text: 'Interactive Maps', icon: <Map />, path: '/maps' },
   { text: 'Analytics', icon: <BarChart />, path: '/analytics' },
   { text: 'Volunteers', icon: <People />, path: '/volunteers' },
   { text: 'Applicants', icon: <Assignment />, path: '/applicants' },
+  { text: 'Donors', icon: <AttachMoney />, path: '/donors' },
+  { text: 'Blood Drives', icon: <LocalHospital />, path: '/blood-drives' },
   { text: 'AI Insights', icon: <Analytics />, path: '/ai-insights' },
 ];
 
@@ -67,15 +73,28 @@ const Sidebar = ({ open, onClose }) => {
       <List>
         {menuItems.map((item) => (
           <ListItem key={item.text} disablePadding>
-            <ListItemButton>
-              <ListItemIcon sx={{ color: 'primary.main' }}>
+            <ListItemButton
+              sx={{
+                backgroundColor: item.featured ? 'primary.main' : 'transparent',
+                color: item.featured ? 'white' : 'inherit',
+                '&:hover': {
+                  backgroundColor: item.featured ? 'primary.dark' : 'action.hover',
+                },
+                borderRadius: item.featured ? 1 : 0,
+                mx: item.featured ? 1 : 0,
+                my: item.featured ? 0.5 : 0
+              }}
+            >
+              <ListItemIcon sx={{ 
+                color: item.featured ? 'white' : 'primary.main' 
+              }}>
                 {item.icon}
               </ListItemIcon>
               <ListItemText 
                 primary={item.text}
                 primaryTypographyProps={{
                   fontSize: '0.95rem',
-                  fontWeight: 500
+                  fontWeight: item.featured ? 600 : 500
                 }}
               />
             </ListItemButton>
