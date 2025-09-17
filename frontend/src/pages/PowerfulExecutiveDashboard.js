@@ -34,6 +34,7 @@ import Papa from 'papaparse';
 import 'leaflet/dist/leaflet.css';
 // import 'leaflet.heat';
 import L from 'leaflet';
+import realDataProcessor from '../services/realDataProcessor';
 
 // Fix Leaflet icons
 delete L.Icon.Default.prototype._getIconUrl;
@@ -108,29 +109,42 @@ const PowerfulExecutiveDashboard = () => {
     console.log('Loading REAL data from CSVs...');
     
     try {
-      // Load all 4 CSV files
-      const [applicantsData, volunteersData, bloodData, donorsData] = await Promise.all([
-        loadCSV('/data/Applicants 2025.csv'),
-        loadCSV('/data/Volunteer 2025.csv'),
-        loadCSV('/data/Biomed.csv'),
-        loadCSV('/data/>$5K donors past 12 months.csv')
-      ]);
+      // Use realDataProcessor to load and process all data with REAL coordinates
+      const processedMapData = await realDataProcessor.loadAndProcessAllData();
       
-      // Store raw data
-      const loadedData = {
-        applicants: applicantsData || generateRealisticApplicants(),
-        volunteers: volunteersData || generateRealisticVolunteers(),
-        bloodDrives: bloodData || generateRealisticBloodDrives(),
-        donors: donorsData || generateRealisticDonors()
-      };
+      // Get the raw data from processor
+      const loadedData = realDataProcessor.data;
+      
+      // Use fallbacks if CSVs fail
+      if (!loadedData.applicants.length) {
+        loadedData.applicants = generateRealisticApplicants();
+      }
+      if (!loadedData.volunteers.length) {
+        loadedData.volunteers = generateRealisticVolunteers();
+      }
+      if (!loadedData.bloodDrives.length) {
+        loadedData.bloodDrives = generateRealisticBloodDrives();
+      }
+      if (!loadedData.donors.length) {
+        loadedData.donors = generateRealisticDonors();
+      }
       
       setRealData(loadedData);
       
       // Process all metrics
       processAllMetrics(loadedData);
       
-      // Generate visualizations
-      generateHeatmap(loadedData);
+      // Use REAL map points from processor instead of generateHeatmap
+      if (processedMapData.points && processedMapData.points.length > 0) {
+        console.log(`Loaded ${processedMapData.points.length} REAL coordinate points from CSVs`);
+        setHeatmapPoints(processedMapData.points);
+        setClusterData(processedMapData.clusters || []);
+      } else {
+        // Fallback if no real coordinates found
+        generateHeatmap(loadedData);
+      }
+      
+      // Generate other visualizations
       generateTimeSeries(loadedData);
       generateGeographic(loadedData);
       generatePredictions(loadedData);
@@ -860,22 +874,57 @@ const PowerfulExecutiveDashboard = () => {
           <ZoomControl position="topright" />
           <ScaleControl position="bottomright" />
           
-          {/* Render points as circles instead of heatmap */}
-          {heatmapPoints.slice(0, 1000).map((point, idx) => (
-            <CircleMarker
-              key={idx}
-              center={[point[0], point[1]]}
-              radius={Math.max(3, point[2] * 10)}
-              fillColor={
-                point[2] > 0.8 ? '#ff0000' :
-                point[2] > 0.6 ? '#ff8800' :
-                point[2] > 0.4 ? '#ffff00' :
-                point[2] > 0.2 ? '#00ff00' : '#0088ff'
-              }
-              fillOpacity={0.6}
-              stroke={false}
-            />
-          ))}
+          {/* Render REAL data points from CSV coordinates */}
+          {heatmapPoints.slice(0, 1000).map((point, idx) => {
+            // Handle both old format [lat, lng, intensity] and new format {lat, lng, ...}
+            const lat = point.lat !== undefined ? point.lat : point[0];
+            const lng = point.lng !== undefined ? point.lng : point[1];
+            const intensity = point[2] || 0.5;
+            const fillColor = point.color || (
+              point.type === 'volunteer' ? '#4CAF50' :
+              point.type === 'bloodDrive' ? '#F44336' :
+              point.type === 'donor' ? '#2196F3' :
+              intensity > 0.8 ? '#ff0000' :
+              intensity > 0.6 ? '#ff8800' :
+              intensity > 0.4 ? '#ffff00' :
+              intensity > 0.2 ? '#00ff00' : '#0088ff'
+            );
+            const size = point.size || Math.max(3, intensity * 10);
+            
+            return (
+              <CircleMarker
+                key={idx}
+                center={[lat, lng]}
+                radius={size}
+                fillColor={fillColor}
+                fillOpacity={0.7}
+                stroke={true}
+                weight={1}
+                color="#fff"
+              >
+                {point.data && (
+                  <Popup>
+                    <div style={{ minWidth: 150 }}>
+                      <strong>
+                        {point.type === 'volunteer' ? '🙋 Volunteer' :
+                         point.type === 'bloodDrive' ? '🩸 Blood Drive' :
+                         point.type === 'donor' ? '💰 Donor' : '📍 Location'}
+                      </strong>
+                      {point.data.state && <div><b>State:</b> {point.data.state}</div>}
+                      {point.data.chapter && <div><b>Chapter:</b> {point.data.chapter}</div>}
+                      {point.data.name && <div><b>Name:</b> {point.data.name}</div>}
+                      {point.data.status && <div><b>Status:</b> {point.data.status}</div>}
+                      {point.data.amount && <div><b>Amount:</b> ${point.data.amount.toLocaleString()}</div>}
+                      {point.data.category && <div><b>Category:</b> {point.data.category}</div>}
+                      {point.data.efficiency !== undefined && <div><b>Efficiency:</b> {point.data.efficiency}%</div>}
+                      {point.data.collected && <div><b>Units:</b> {point.data.collected}</div>}
+                      {point.data.year && <div><b>Year:</b> {point.data.year}</div>}
+                    </div>
+                  </Popup>
+                )}
+              </CircleMarker>
+            );
+          })}
         </MapContainer>
       </CardContent>
     </Card>
