@@ -20,6 +20,7 @@ import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import axios from 'axios';
 import { format } from 'date-fns';
+import staticDataService from '../services/staticDataService';
 
 // Fix Leaflet icon issue
 delete L.Icon.Default.prototype._getIconUrl;
@@ -58,28 +59,52 @@ const WorldClassExecutiveDashboard = () => {
   const fetchAllData = async () => {
     setLoading(true);
     try {
-      // Fetch KPIs
-      const kpisResponse = await axios.get('http://localhost:5000/api/kpis');
-      setKpis(kpisResponse.data);
+      // Try to fetch from backend first, fall back to static data
+      try {
+        // Attempt backend connection
+        const kpisResponse = await axios.get('http://localhost:5000/api/kpis');
+        setKpis(kpisResponse.data);
 
-      // Fetch chart data
-      const chartTypes = ['volunteer_timeline', 'geographic_heatmap', 'conversion_funnel', 
-                         'blood_drive_trends', 'donor_distribution'];
-      const chartPromises = chartTypes.map(type => 
-        axios.get(`http://localhost:5000/api/charts/${type}`)
-      );
-      const chartResponses = await Promise.all(chartPromises);
-      const newChartData = {};
-      chartTypes.forEach((type, index) => {
-        newChartData[type] = chartResponses[index].data;
-      });
-      setChartData(newChartData);
+        // Fetch chart data
+        const chartTypes = ['volunteer_timeline', 'geographic_heatmap', 'conversion_funnel', 
+                           'blood_drive_trends', 'donor_distribution'];
+        const chartPromises = chartTypes.map(type => 
+          axios.get(`http://localhost:5000/api/charts/${type}`)
+        );
+        const chartResponses = await Promise.all(chartPromises);
+        const newChartData = {};
+        chartTypes.forEach((type, index) => {
+          newChartData[type] = chartResponses[index].data;
+        });
+        setChartData(newChartData);
 
-      // Fetch insights
-      const insightsResponse = await axios.get('http://localhost:5000/api/insights');
-      setInsights(insightsResponse.data.insights);
+        // Fetch insights
+        const insightsResponse = await axios.get('http://localhost:5000/api/insights');
+        setInsights(insightsResponse.data.insights);
+      } catch (backendError) {
+        // Fall back to static data service
+        console.log('Backend not available, using static data');
+        
+        // Fetch KPIs from static service
+        const kpisData = await staticDataService.getKPIs();
+        setKpis(kpisData);
+
+        // Fetch chart data from static service
+        const chartTypes = ['volunteer_timeline', 'geographic_heatmap', 'conversion_funnel', 
+                           'blood_drive_trends', 'donor_distribution'];
+        const newChartData = {};
+        for (const type of chartTypes) {
+          newChartData[type] = await staticDataService.getChartData(type);
+        }
+        setChartData(newChartData);
+
+        // Fetch insights from static service
+        const insightsData = await staticDataService.getInsights();
+        setInsights(insightsData.insights);
+      }
 
       setLoading(false);
+      setError(null);
     } catch (err) {
       setError('Failed to fetch data');
       setLoading(false);
@@ -91,10 +116,18 @@ const WorldClassExecutiveDashboard = () => {
     if (!aiQuery) return;
     
     try {
-      const response = await axios.post('http://localhost:5000/api/ai/analyze', {
-        query: aiQuery
-      });
-      setAiResponse(response.data);
+      // Try backend first, fall back to static service
+      let response;
+      try {
+        response = await axios.post('http://localhost:5000/api/ai/analyze', {
+          query: aiQuery
+        });
+        setAiResponse(response.data);
+      } catch (backendErr) {
+        // Use static AI service
+        const aiResult = await staticDataService.analyzeWithAI(aiQuery);
+        setAiResponse(aiResult);
+      }
     } catch (err) {
       console.error('AI query failed:', err);
     }
@@ -449,7 +482,21 @@ const WorldClassExecutiveDashboard = () => {
               <Button 
                 variant="outlined" 
                 startIcon={<Download />}
-                onClick={() => window.open('http://localhost:5000/api/export/csv', '_blank')}
+                onClick={async () => {
+                  try {
+                    // Try backend first
+                    window.open('http://localhost:5000/api/export/csv', '_blank');
+                  } catch (err) {
+                    // Fall back to static export
+                    const csvData = await staticDataService.exportData('csv', 'kpis');
+                    const blob = new Blob([csvData], { type: 'text/csv' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `redcross_kpis_${new Date().toISOString().split('T')[0]}.csv`;
+                    a.click();
+                  }
+                }}
               >
                 Export Data
               </Button>
