@@ -10,6 +10,7 @@ import Sidebar from './components/Layout/Sidebar';
 import Dashboard from './pages/Dashboard';
 import ExecutiveDashboard from './pages/ExecutiveDashboard';
 import ExecutiveMinimal from './pages/ExecutiveMinimal';
+import WorldClassExecutiveDashboard from './pages/WorldClassExecutiveDashboard';
 import Maps from './pages/Maps';
 import Analytics from './pages/Analytics';
 import Volunteers from './pages/Volunteers';
@@ -32,8 +33,9 @@ function App() {
         <Box sx={{ display: 'block' }}>
           <Box component="main" sx={{ p: 0, m: 0 }}>
             <Routes>
-              <Route path="/" element={<ExecutiveMinimal />} />
-              <Route path="/executive" element={<ExecutiveMinimal />} />
+              <Route path="/" element={<WorldClassExecutiveDashboard />} />
+              <Route path="/executive" element={<WorldClassExecutiveDashboard />} />
+              <Route path="/executive-minimal" element={<ExecutiveMinimal />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/maps" element={<Maps />} />
               <Route path="/analytics" element={<Analytics />} />
